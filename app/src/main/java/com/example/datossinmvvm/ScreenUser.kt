@@ -15,7 +15,7 @@ import androidx.room.Room
 import kotlinx.coroutines.launch
 
 @Composable
-fun ScreenUser() {
+fun ScreenUser(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var db: UserDatabase
     var id by remember { mutableStateOf("") }
@@ -30,7 +30,7 @@ fun ScreenUser() {
     val coroutineScope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
@@ -92,7 +92,7 @@ fun crearDatabase(context: Context): UserDatabase {
 }
 
 suspend fun getUsers(dao: UserDao): String {
-    var rpta: String = ""
+    var rpta = ""
     val users = dao.getAll()
     users.forEach { user ->
         val fila = user.firstName + " - " + user.lastName + "\n"
