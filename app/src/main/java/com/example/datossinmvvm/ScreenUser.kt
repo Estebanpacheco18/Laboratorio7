@@ -3,17 +3,17 @@ package com.example.datossinmvvm
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.Room
+import com.example.datossinmvvm.ui.theme.BrightGreen
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenUser(modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -29,68 +29,84 @@ fun ScreenUser(modifier: Modifier = Modifier) {
 
     val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Spacer(Modifier.height(50.dp))
-        TextField(
-            value = id,
-            onValueChange = { id = it },
-            label = { Text("ID (solo lectura)") },
-            readOnly = true,
-            singleLine = true
-        )
-        TextField(
-            value = firstName,
-            onValueChange = { firstName = it },
-            label = { Text("First Name: ") },
-            singleLine = true
-        )
-        TextField(
-            value = lastName,
-            onValueChange = { lastName = it },
-            label = { Text("Last Name:") },
-            singleLine = true
-        )
-        Button(
-            onClick = {
-                val user = User(0, firstName, lastName)
-                coroutineScope.launch {
-                    AgregarUsuario(user = user, dao = dao)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {/* (Aqui va un titulo) */ },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BrightGreen),
+                actions = {
+                    Button(
+                        onClick = {
+                            val user = User(0, firstName, lastName)
+                            coroutineScope.launch {
+                                AgregarUsuario(user = user, dao = dao)
+                            }
+                            firstName = ""
+                            lastName = ""
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrightGreen)
+                    ) {
+                        Text("Agregar Usuario", fontSize = 16.sp)
+                    }
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                val data = getUsers(dao = dao)
+                                dataUser.value = data
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrightGreen)
+                    ) {
+                        Text("Listar Usuarios", fontSize = 16.sp)
+                    }
                 }
-                firstName = ""
-                lastName = ""
-            }
-        ) {
-            Text("Agregar Usuario", fontSize = 16.sp)
-        }
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    val data = getUsers(dao = dao)
-                    dataUser.value = data
+            )
+        },
+        content = { paddingValues ->
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp)
+            ) {
+                Spacer(Modifier.height(50.dp))
+                TextField(
+                    value = id,
+                    onValueChange = { id = it },
+                    label = { Text("ID (solo lectura)") },
+                    readOnly = true,
+                    singleLine = true
+                )
+                TextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("First Name: ") },
+                    singleLine = true
+                )
+                TextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Last Name:") },
+                    singleLine = true
+                )
+                Button(
+                    onClick = {
+                        coroutineScope.launch {
+                            EliminarUltimoUsuario(dao = dao)
+                            val data = getUsers(dao = dao)
+                            dataUser.value = data
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrightGreen)
+                ) {
+                    Text("Eliminar Último Usuario", fontSize = 16.sp)
                 }
+                Text(
+                    text = dataUser.value, fontSize = 20.sp
+                )
             }
-        ) {
-            Text("Listar Usuarios", fontSize = 16.sp)
         }
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    EliminarUltimoUsuario(dao = dao)
-                    val data = getUsers(dao = dao)
-                    dataUser.value = data
-                }
-            }
-        ) {
-            Text("Eliminar Último Usuario", fontSize = 16.sp)
-        }
-        Text(
-            text = dataUser.value, fontSize = 20.sp
-        )
-    }
+    )
 }
 
 @Composable
@@ -120,7 +136,6 @@ suspend fun AgregarUsuario(user: User, dao: UserDao) {
     }
 }
 
-//Esta parte es donde se elimina el último usuario que se haya ingresado
 suspend fun EliminarUltimoUsuario(dao: UserDao) {
     try {
         val users = dao.getAll()
